@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
+import os
 
 
 def root(_request):
@@ -24,6 +26,9 @@ api_version = 'api/'
 urlpatterns = [
     path('', root),
     path('admin/', admin.site.urls),
+    
+    # Serve favicon.ico
+    path('favicon.ico', serve, {'path': 'favicon.ico', 'document_root': settings.STATIC_ROOT}),
     
     # App URLs with proper namespacing
     path(f'{api_version}auth/', include('accounts.urls')),
