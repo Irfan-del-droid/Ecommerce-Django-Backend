@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.urls import path, include
 from django.http import HttpResponse
 from django.conf import settings
+from django.conf.urls.static import static
 import os
 
 
