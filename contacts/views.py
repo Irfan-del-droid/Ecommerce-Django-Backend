@@ -14,6 +14,11 @@ class ContactViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
 
+    def get_authenticators(self):
+        if self.action == 'create':
+            return []
+        return super().get_authenticators()
+
     def perform_create(self, serializer):
         serializer.save(
             ip_address=self.request.META.get('REMOTE_ADDR'),

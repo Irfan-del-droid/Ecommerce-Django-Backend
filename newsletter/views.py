@@ -14,6 +14,11 @@ class SubscriberViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
 
+    def get_authenticators(self):
+        if self.action in ('subscribe', 'unsubscribe'):
+            return []
+        return super().get_authenticators()
+
     @action(detail=False, methods=['post'], url_path='subscribe')
     def subscribe(self, request):
         email = request.data.get('email', '').lower()

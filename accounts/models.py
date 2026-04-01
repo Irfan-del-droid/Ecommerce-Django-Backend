@@ -10,8 +10,7 @@ class User(AbstractUser):
         MODERATOR = 'moderator', 'Moderator'
 
     email = models.EmailField(unique=True)
-    phone_regex = RegexValidator(regex=r'^[0-9]{10}$', message="Please enter a valid 10-digit phone number")
-    phone = models.CharField(validators=[phone_regex], max_length=15, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
     
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
     is_active = models.BooleanField(default=True)
@@ -26,7 +25,7 @@ class User(AbstractUser):
     
     # Django uses username by default, but we'll use email for login login
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:
         ordering = ['-date_joined']

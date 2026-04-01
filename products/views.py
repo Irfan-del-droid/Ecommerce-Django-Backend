@@ -10,6 +10,10 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
+    def get_authenticators(self):
+        # Public catalog: skip JWT so a stale Bearer cannot cause 401 before AllowAny.
+        return []
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = ProductSerializer
@@ -21,9 +25,14 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'created_at', 'sold_count']
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if hasattr(self, 'action') and self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [permissions.IsAdminUser()]
         return super().get_permissions()
+
+    def get_authenticators(self):
+        if hasattr(self, 'action') and self.action in ('list', 'retrieve', 'featured'):
+            return []
+        return super().get_authenticators()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -10,17 +10,40 @@ from .services import GoogleOAuthService
 User = get_user_model()
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    """Must stay anonymous + no JWT parsing so stale Bearer headers cannot break login."""
+    permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
     serializer_class = MyTokenObtainPairSerializer
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
+    authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
+    def get(self, request, *args, **kwargs):
+        """Browser GET shows how to call signup; registration itself is POST-only."""
+        return Response({
+            'detail': 'Send POST with application/json to register.',
+            'method': 'POST',
+            'url': request.build_absolute_uri(),
+            'body': {
+                'first_name': 'string (required)',
+                'last_name': 'string (required)',
+                'email': 'string (required)',
+                'password': 'string (required)',
+                'phone': 'string (optional, 10 digits)',
+            },
+        })
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = serializer.save()
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         # Generate tokens for immediate login
         refresh = RefreshToken.for_user(user)
@@ -33,6 +56,7 @@ class RegisterView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 class GoogleAuthView(APIView):
+    authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):

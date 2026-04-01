@@ -147,10 +147,14 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    os.environ.get('CLIENT_URL', 'http://localhost:3000'),
-]
+# CORS: CLIENT_URL may point at production (e.g. Vercel). In DEBUG, also allow local CRA origins.
+_local_cra = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']
+_env = os.environ.get('CLIENT_URL', '').strip()
+_env_origins = [o.strip() for o in _env.split(',') if o.strip()]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = list(dict.fromkeys(_local_cra + _env_origins))
+else:
+    CORS_ALLOWED_ORIGINS = _env_origins if _env_origins else _local_cra
 CORS_ALLOW_CREDENTIALS = True
 
 # Silencing optional checks
