@@ -43,8 +43,9 @@ def favicon_view(request):
     from django.conf import settings
     from django.http import HttpResponse
 
-    # Try staticfiles directory first (production)
-    favicon_path = os.path.join(settings.STATIC_ROOT, 'favicon.ico')
+    # Serve directly from the project static directory
+    favicon_path = os.path.join(settings.BASE_DIR, 'static', 'favicon.ico')
+
     if os.path.exists(favicon_path):
         try:
             with open(favicon_path, 'rb') as f:
@@ -53,22 +54,11 @@ def favicon_view(request):
                 response['Access-Control-Allow-Origin'] = '*'
                 return response
         except Exception as e:
-            print(f"Error reading favicon from STATIC_ROOT: {e}")
+            print(f"Error reading favicon: {e}")
+            return HttpResponse(status=500)
 
-    # Fallback: serve from source static directory
-    source_path = os.path.join(settings.BASE_DIR, 'static', 'favicon.ico')
-    if os.path.exists(source_path):
-        try:
-            with open(source_path, 'rb') as f:
-                response = HttpResponse(f.read(), content_type='image/x-icon')
-                response['Cache-Control'] = 'public, max-age=86400'
-                response['Access-Control-Allow-Origin'] = '*'
-                return response
-        except Exception as e:
-            print(f"Error reading favicon from static: {e}")
-
-    # Last resort: return 404
-    print(f"Favicon not found. STATIC_ROOT: {settings.STATIC_ROOT}, BASE_DIR: {settings.BASE_DIR}")
+    # If not found, return 404
+    print(f"Favicon not found at: {favicon_path}")
     return HttpResponse(status=404)
 
 
