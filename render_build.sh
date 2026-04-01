@@ -19,11 +19,15 @@ python manage.py migrate
 # Collect static files for WhiteNoise
 python manage.py collectstatic --noinput
 
+# Ensure favicon is in staticfiles
+if [ -f static/favicon.ico ] && [ ! -f staticfiles/favicon.ico ]; then
+    echo "Copying favicon.ico to staticfiles directory"
+    cp static/favicon.ico staticfiles/
+fi
+
 # Verify favicon was collected
 if [ -f staticfiles/favicon.ico ]; then
-    echo "favicon.ico successfully collected to staticfiles"
+    echo "favicon.ico successfully available in staticfiles"
 else
-    echo "favicon.ico not found in staticfiles - copying manually"
-    mkdir -p staticfiles
-    cp static/favicon.ico staticfiles/ 2>/dev/null || echo "Failed to copy favicon"
+    echo "Warning: favicon.ico not found in staticfiles"
 fi

@@ -15,16 +15,26 @@ def root(request):
     if request.method == 'OPTIONS':
         response = HttpResponse()
         response['Access-Control-Allow-Origin'] = '*'
-        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, HEAD'
         response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
 
-    return JsonResponse({
-        "service": "Loki Stores API",
-        "api_base": "/api/",
-        "admin": "/admin/",
-        "hint": "Open the React app at http://localhost:3000 for the storefront UI.",
-    })
+    # Handle GET and HEAD requests
+    if request.method in ['GET', 'HEAD']:
+        response = JsonResponse({
+            "service": "Loki Stores API",
+            "api_base": "/api/",
+            "admin": "/admin/",
+            "hint": "Open the React app at http://localhost:3000 for the storefront UI.",
+        })
+        # Add CORS headers for all responses
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, HEAD'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
+
+    # Method not allowed
+    return HttpResponse(status=405)
 
 
 def favicon_view(request):
@@ -39,7 +49,8 @@ def favicon_view(request):
         try:
             with open(favicon_path, 'rb') as f:
                 response = HttpResponse(f.read(), content_type='image/x-icon')
-                response['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
+                response['Cache-Control'] = 'public, max-age=86400'
+                response['Access-Control-Allow-Origin'] = '*'
                 return response
         except Exception as e:
             print(f"Error reading favicon from STATIC_ROOT: {e}")
@@ -51,11 +62,13 @@ def favicon_view(request):
             with open(source_path, 'rb') as f:
                 response = HttpResponse(f.read(), content_type='image/x-icon')
                 response['Cache-Control'] = 'public, max-age=86400'
+                response['Access-Control-Allow-Origin'] = '*'
                 return response
         except Exception as e:
             print(f"Error reading favicon from static: {e}")
 
     # Last resort: return 404
+    print(f"Favicon not found. STATIC_ROOT: {settings.STATIC_ROOT}, BASE_DIR: {settings.BASE_DIR}")
     return HttpResponse(status=404)
 
 
