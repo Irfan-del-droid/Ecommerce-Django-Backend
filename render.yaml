@@ -21,7 +21,7 @@ services:
       - key: WEB_CONCURRENCY
         value: 4
       - key: ALLOWED_HOSTS
-        value: loki-backend.onrender.com,localhost,127.0.0.1
+        value: ecommerce-django-backend-bcw7.onrender.com,localhost,127.0.0.1
       - key: CLIENT_URL
         value: https://loki-frontend.vercel.app # Update with your actual frontend URL
       - key: JWT_ACCESS_TOKEN_LIFETIME
