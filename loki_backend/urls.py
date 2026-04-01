@@ -9,8 +9,16 @@ from django.conf import settings
 import os
 
 
-def root(_request):
+def root(request):
     """GET / — API has no HTML homepage; this avoids opaque 404s in the dev server log."""
+    # Handle CORS preflight requests
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
+
     return JsonResponse({
         "service": "Loki Stores API",
         "api_base": "/api/",
@@ -21,15 +29,33 @@ def root(_request):
 
 def favicon_view(request):
     """Serve favicon.ico from static files."""
+    import os
+    from django.conf import settings
+    from django.http import HttpResponse
+
+    # Try staticfiles directory first (production)
     favicon_path = os.path.join(settings.STATIC_ROOT, 'favicon.ico')
     if os.path.exists(favicon_path):
-        with open(favicon_path, 'rb') as f:
-            return HttpResponse(f.read(), content_type='image/x-icon')
+        try:
+            with open(favicon_path, 'rb') as f:
+                response = HttpResponse(f.read(), content_type='image/x-icon')
+                response['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
+                return response
+        except Exception as e:
+            print(f"Error reading favicon from STATIC_ROOT: {e}")
+
     # Fallback: serve from source static directory
     source_path = os.path.join(settings.BASE_DIR, 'static', 'favicon.ico')
     if os.path.exists(source_path):
-        with open(source_path, 'rb') as f:
-            return HttpResponse(f.read(), content_type='image/x-icon')
+        try:
+            with open(source_path, 'rb') as f:
+                response = HttpResponse(f.read(), content_type='image/x-icon')
+                response['Cache-Control'] = 'public, max-age=86400'
+                return response
+        except Exception as e:
+            print(f"Error reading favicon from static: {e}")
+
+    # Last resort: return 404
     return HttpResponse(status=404)
 
 
